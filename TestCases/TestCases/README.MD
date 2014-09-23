@@ -9,7 +9,7 @@ Given a function:
 bool is_two(int value) {
 	return value == 2;
 }
-``
+```
 
 The following will execute two tests against the single solution
 
