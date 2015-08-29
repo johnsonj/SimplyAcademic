@@ -21,3 +21,7 @@ A lightweight C++ testing library, useful for comparing expected input/output ac
 ## LinkedList, PrimitiveTypes, String, Trees ##
 
 Data structure style questions.
+
+## SpellChecker ##
+
+An implementation of a trie-based dictionary built for an interview.
