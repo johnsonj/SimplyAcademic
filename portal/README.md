@@ -1,13 +1,13 @@
 Portal
 ======
 
-Example app built from (How I Start Tutorial)[https://howistart.org/posts/elixir/1]
+Example app built from [How I Start Tutorial](https://howistart.org/posts/elixir/1)
 
 ## Running the Application ##
 
-Elixir: (Instructions)[http://elixir-lang.org/install.html]
-Test suite: `mix test`
-Interactive shell: `iex -S mix`
+* Elixir: [Instructions](http://elixir-lang.org/install.html)
+* Test suite: `mix test`
+* Interactive shell: `iex -S mix`
 
 ## Sample Usage ##
 
