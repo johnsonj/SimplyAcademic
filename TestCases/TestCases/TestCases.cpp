@@ -1,5 +1,4 @@
-// TestCases.cpp : Defines the entry point for the console application.
-//
+// TestCases.cpp : Sample usage of the TestSuite library.
 
 #include "stdafx.h"
 #include "TestSuite.h"
