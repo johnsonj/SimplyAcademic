@@ -7,6 +7,7 @@ module ExceptionLib
 	ffi_lib "./exception.so"
 
 	attach_function 'WrappedTrigger', [:pointer], :void
+  attach_function 'WrappedSuccess', [:pointer], :bool
 end
 
 def dump_ptr_ptr(ptr)
@@ -37,12 +38,11 @@ class LibraryException < StandardError
   end
 
   def self.clean_cpp_type(typeid)
-    `c++filt -t #{typeid}`
+    `c++filt -t #{typeid}`.delete!("\n")
   end
 
   def self.make_name_const(typeid)
     full_name = clean_cpp_type typeid
-    full_name.delete!("\n")
     full_name.split(/[::,_]/).each { |token| token.capitalize! }.join("")
   end
 
@@ -71,22 +71,29 @@ class WrappedLib
   def method_missing(method, *args, &block)
     error_result = FFI::MemoryPointer.new(:pointer)
 
-    @library.send("Wrapped#{method}", error_result, *args)
+    res = @library.send("Wrapped#{method}", error_result, *args)
 
-    if error_result.get_pointer(0)
+    if error_result.get_pointer(0) != nil
       error = ErrorResult.new(error_result.get_pointer(0))
       raise LibraryException.create_native(error)
     end
+
+    res
   end
 end
 
 lib = WrappedLib.new(ExceptionLib)
 
+puts "Return from library: #{lib.Success}"
+
 begin
   lib.Trigger
 rescue LibraryException => e
-  puts e.type
-  puts e.what
+  puts "Caught exception: #{e.type}, reason: #{e.what}"
 end
 
-lib.Trigger
+begin
+  lib.Trigger
+rescue LibraryException => e
+  puts "Caught again"
+end
