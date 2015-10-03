@@ -6,6 +6,10 @@ A collection of tiny projects or exercises for learning sake that don't warrant 
 
 C++ Library for executing batches of work.
 
+## RubyToC ##
+
+Collection of experiments in calling C/C++ from Ruby.
+
 ## JJVM ##
 
 A simple stack based virtual machine.
