@@ -21,7 +21,14 @@ class ErrorResult < FFI::ManagedStruct
   end
 end
 
-class LibraryException < Exception
+#
+# Base exception object for exceptions thrown by the library.
+#
+# Creates a new exception class for each unique exception thrown
+# by the library. Currently done at time of throw but could be moved
+# to load so clients can catch specific exceptions.
+#
+class LibraryException < StandardError
   attr_accessor :what, :type
 
   def initialize(error_result)
@@ -50,10 +57,21 @@ class LibraryException < Exception
   end
 end
 
-module WrappedLib
-  def self.Trigger
+#
+# Wrapper for the exception calling convention
+# 
+# Use this class to wrap a FFI module. It will check for
+# the presence of exceptions in library calls and throw them.
+#
+class WrappedLib
+  def initialize(library)
+    @library = library
+  end
+
+  def method_missing(method, *args, &block)
     error_result = FFI::MemoryPointer.new(:pointer)
-    ExceptionLib.WrappedTrigger(error_result)
+
+    @library.send("Wrapped#{method}", error_result, *args)
 
     if error_result.get_pointer(0)
       error = ErrorResult.new(error_result.get_pointer(0))
@@ -62,12 +80,13 @@ module WrappedLib
   end
 end
 
+lib = WrappedLib.new(ExceptionLib)
 
 begin
-  WrappedLib.Trigger
+  lib.Trigger
 rescue LibraryException => e
   puts e.type
   puts e.what
 end
 
-WrappedLib.Trigger
+lib.Trigger
