@@ -3,13 +3,17 @@
 #include<iostream>
 #include<typeinfo>
 
+// Used to marshal the exception information to the caller.
+// Caller is responsible for freeing the structure and char*
 struct WrappedException
 {
   char* type = nullptr;
   char* what = nullptr;
 };
 
-char* copyalloc(const char* str)
+// Helper to allocate and copy a string.
+// There's probably a std library method I'm missing here.
+char* strcopyalloc(const char* str)
 {
   char* copy = new char[strlen(str) + 1];
   strcpy(copy, str);
@@ -24,8 +28,8 @@ void handle_exception(const std::exception& e, void** ppWrappedException)
     return;
   }
   WrappedException* pWrappedException = new WrappedException;
-  pWrappedException->what = copyalloc(e.what());
-  pWrappedException->type = copyalloc(typeid(e).name());
+  pWrappedException->what = strcopyalloc(e.what());
+  pWrappedException->type = strcopyalloc(typeid(e).name());
 
   *ppWrappedException = pWrappedException;
 }
@@ -51,11 +55,12 @@ void handle_exception(const std::exception& e, void** ppWrappedException)
   }                                                         \
   }                                                         \
 
+// Need to define a specialization for each type because they may have unique 'failure_return' segments
+// Mostly needed to support void methods as they don't have to default returns.
 #define EXPORT_WRAPPED_void(fn, wrapped_name) EXPORT_WRAPPED_OPENED(void, fn, wrapped_name, return)
 #define EXPORT_WRAPPED_bool(fn, wrapped_name) EXPORT_WRAPPED_OPENED(bool, fn, wrapped_name, bool error_val = {}; return error_val;)
 
-#define EXPORT_WRAPPED(type, fn)                                                            \
-    EXPORT_WRAPPED_##type(fn, Wrapped ## fn)                                                \
+#define EXPORT_WRAPPED(type, fn) EXPORT_WRAPPED_##type(fn, Wrapped ## fn)
 
 // Client examples
 void Trigger()

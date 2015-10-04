@@ -2,11 +2,11 @@
 require 'ffi'
 
 module ExceptionLib
-	extend FFI::Library
+  extend FFI::Library
 
-	ffi_lib "./exception.so"
+  ffi_lib "./exception.so"
 
-	attach_function 'WrappedTrigger', [:pointer], :void
+  attach_function 'WrappedTrigger', [:pointer], :void
   attach_function 'WrappedSuccess', [:pointer], :bool
 end
 
