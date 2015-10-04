@@ -25,7 +25,7 @@ lib = WrappedLib.new(Lib)
 
 begin
     if lib.doWork
-
+        puts "success!"
     end
 rescue LibraryException => e
     puts "Exception raise: #{e.type}: #{e.what}"
@@ -36,3 +36,4 @@ end
  1. Remove the need to specify 'Wrapped[..]' when attaching functions to the library
  2. Allow clients to catch specific exceptions (eg: StdLogicError). This can't happen yet because the classes are created when the exception is thrown.
  3. Allow parameters in the EXPORT_WRAPPED macro
+ 4. Allow C++ code to specify custom exception marshaling.

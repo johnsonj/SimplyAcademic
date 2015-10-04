@@ -40,17 +40,11 @@ void handle_exception(const std::exception& e, void** ppWrappedException)
   type wrapped_name(void** ppWrappedException) throw()      \
   {                                                         \
     try                                                     \
-    {                                                       \
       return fn();                                          \
-    }                                                       \
     catch(const std::exception& e)                          \
-    {                                                       \
       handle_exception(e, ppWrappedException);              \
-    }                                                       \
     catch(...)                                              \
-    {                                                       \
       std::cout << "Unknown exception thrown" << std::endl; \
-    }                                                       \
     failure_return;                                         \
   }                                                         \
   }                                                         \
