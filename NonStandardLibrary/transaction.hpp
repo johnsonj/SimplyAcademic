@@ -9,6 +9,7 @@ namespace nstd
 
 class ITransaction;
 class IHistory;
+class IRollbackVisitor;
 
 using std::unique_ptr;
 using std::make_unique;
@@ -16,58 +17,39 @@ using std::stack;
 
 using HistoryInstance = IHistory*;
 
-class ITransaction
+unique_ptr<ITransaction> StartTransaction();
+unique_ptr<ITransaction> StartTransaction(unique_ptr<IRollbackVisitor>&& rollbackVisitor);
+
+class IRollbackSite
+{
+public:
+  virtual ~IRollbackSite() {}
+  virtual void accept(IRollbackVisitor& visitor) = 0;
+};
+
+class ITransaction : public IRollbackSite
 {
 public:
   ITransaction() noexcept {};
   virtual ~ITransaction() {}
   virtual void complete() noexcept = 0;
-  virtual void rollback() = 0;
   virtual void push(HistoryInstance&& history) = 0;
+  virtual void rollback() = 0;
 };
 
-class IHistory
+class IHistory : public IRollbackSite
 {
 public:
   virtual ~IHistory() noexcept {}
   virtual void rollback() = 0;
 };
 
-class Transaction : public ITransaction
+class IRollbackVisitor
 {
 public:
-  Transaction() noexcept;
-  ~Transaction();
-  void complete() noexcept override;
-  void rollback() override;
-  void push(HistoryInstance&& history) override;
-
-private:
-  bool completed { false };
-  Lazy<stack<HistoryInstance>> past;
+  virtual ~IRollbackVisitor() {}
+  virtual void visit(stack<HistoryInstance>&) = 0;
+  virtual void visit(IHistory&) = 0;
 };
-
-template<typename ValType>
-class History : public IHistory
-{
-public:
-  History(ValType& _var, ValType& _new_val) : old_var(_var), var(_var)
-  {
-    var = _new_val;
-  }
-  void rollback() override
-  {
-    var = old_var;
-  }
-private:
-  ValType& var;
-  ValType old_var;
-};
-
-template<typename ValType>
-void Set(ITransaction& trans, ValType& var, ValType new_value)
-{
-  trans.push(new History<ValType>(var, new_value));
-}
 
 }

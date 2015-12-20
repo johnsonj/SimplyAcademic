@@ -3,43 +3,63 @@
 namespace nstd
 {
 
-Transaction::Transaction() noexcept
+class BasicRollbackVisitor : public IRollbackVisitor
 {
-}
-
-Transaction::~Transaction()
-{
-  // TODO: Should this assert?
-  if(!completed)
-    rollback();
-}
-
-void Transaction::complete() noexcept
-{
-  completed = true;
-}
-
-void Transaction::rollback()
-{
-  if(completed)
+  void visit(stack<HistoryInstance>& past) override
   {
-    // TODO: throw would be better here
-    assert(false);
-    return;
+    while(!past.empty())
+    {
+      past.top()->accept(*this);
+      past.pop();
+    }
   }
 
-  while(!past->empty())
+  void visit(IHistory& history) override
   {
-    past->top()->rollback();
-    past->pop();
+    history.rollback();
   }
+};
 
-  completed = true;
+class Transaction : public ITransaction
+{
+public:
+  Transaction(unique_ptr<IRollbackVisitor>&& _rollback) noexcept : rollback_visitor(std::move(_rollback)) {};
+  ~Transaction()
+  {
+    if(!completed)
+      rollback();
+  }
+  void complete() noexcept override
+  {
+    completed = true;
+  }
+  void rollback() override
+  {
+    accept(*rollback_visitor);
+  }
+  void push(HistoryInstance&& history) override
+  {
+      past->push(history);
+  }
+  void accept(IRollbackVisitor& visitor) override
+  {
+      visitor.visit(*past);
+      complete();
+  }
+private:
+  bool completed { false };
+  Lazy<stack<HistoryInstance>> past;
+  unique_ptr<IRollbackVisitor> rollback_visitor;
+};
+
+unique_ptr<ITransaction> StartTransaction()
+{
+  return make_unique<Transaction>(make_unique<BasicRollbackVisitor>());
 }
 
-void Transaction::push(HistoryInstance&& history)
+unique_ptr<ITransaction> StartTransaction(unique_ptr<IRollbackVisitor>&& rollback_visitor)
 {
-  past->push(history);
+  return make_unique<Transaction>(std::move(rollback_visitor));
 }
 
 }
