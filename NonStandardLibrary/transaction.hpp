@@ -11,23 +11,12 @@ class ITransaction;
 class IHistory;
 class IRollbackVisitor;
 
-using std::unique_ptr;
-using std::make_unique;
-using std::stack;
-
-using HistoryInstance = IHistory*;
+using HistoryInstance = unique_ptr<IHistory>;
 
 unique_ptr<ITransaction> StartTransaction();
 unique_ptr<ITransaction> StartTransaction(unique_ptr<IRollbackVisitor>&& rollbackVisitor);
 
-class IRollbackSite
-{
-public:
-  virtual ~IRollbackSite() {}
-  virtual void accept(IRollbackVisitor& visitor) = 0;
-};
-
-class ITransaction : public IRollbackSite
+class ITransaction
 {
 public:
   ITransaction() noexcept {};
@@ -35,20 +24,22 @@ public:
   virtual void complete() noexcept = 0;
   virtual void push(HistoryInstance&& history) = 0;
   virtual void rollback() = 0;
+  virtual void accept(IRollbackVisitor& visitor) = 0;
 };
 
-class IHistory : public IRollbackSite
+class IHistory
 {
 public:
   virtual ~IHistory() noexcept {}
   virtual void rollback() = 0;
+  virtual void accept(IRollbackVisitor& visitor) = 0;
 };
 
 class IRollbackVisitor
 {
 public:
-  virtual ~IRollbackVisitor() {}
-  virtual void visit(stack<HistoryInstance>&) = 0;
+  virtual ~IRollbackVisitor() noexcept {}
+  virtual void visit(std::stack<HistoryInstance>&) = 0;
   virtual void visit(IHistory&) = 0;
 };
 

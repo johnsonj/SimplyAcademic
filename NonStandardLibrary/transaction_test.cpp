@@ -3,6 +3,16 @@
 
 using namespace nstd;
 
+using std::unique_ptr;
+using std::make_unique;
+using std::stack;
+
+template<typename D, typename B>
+std::unique_ptr<D> static_cast_ptr(std::unique_ptr<B>&& base)
+{
+  return std::unique_ptr<D>(static_cast<D*>(base.release()));
+}
+
 namespace client_code
 {
 
@@ -16,7 +26,7 @@ template<typename ValType>
 class HistoryNode : public MergableHistory
 {
 public:
-  HistoryNode(ValType& _var, const ValType& _new_val) : old_var(_var), var(_var)
+  HistoryNode(ValType& _var, const ValType& _new_val) : var(_var), old_var(_var)
   {
     var = _new_val;
   }
@@ -49,10 +59,11 @@ class MergableRollbackVisitor : public nstd::IRollbackVisitor
   {
     // Only our own history nodes should exist
     // Could this cast be avoided by visiting the node? 
-    auto previous = static_cast<MergableHistory*>(past.top());
+    auto previous = static_cast_ptr<MergableHistory>(std::move(past.top()));
+    past.pop();
     while(!past.empty())
     {
-      auto current = static_cast<MergableHistory*>(past.top());
+      auto current = static_cast_ptr<MergableHistory>(std::move(past.top()));
 
       // if it can't merge it then run it now
       if(!current->can_merge(*previous))
@@ -74,7 +85,7 @@ class MergableRollbackVisitor : public nstd::IRollbackVisitor
 template<typename ValType>
 void Set(unique_ptr<ITransaction>& trans, ValType& var, ValType new_value)
 {
-  trans->push(new HistoryNode<ValType>(var, new_value));
+  trans->push(make_unique<HistoryNode<ValType>>(var, new_value));
 }
 
 }

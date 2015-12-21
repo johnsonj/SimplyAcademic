@@ -1,5 +1,9 @@
 #include "transaction.hpp"
 
+using std::unique_ptr;
+using std::make_unique;
+using std::stack;
+
 namespace nstd
 {
 
@@ -39,7 +43,7 @@ public:
   }
   void push(HistoryInstance&& history) override
   {
-      past->push(history);
+      past->push(std::move(history));
   }
   void accept(IRollbackVisitor& visitor) override
   {
