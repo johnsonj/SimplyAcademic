@@ -22,6 +22,15 @@
  *		runner.AddSolution("Valid Solution", is_two); // Add solutions
  *		runner.Execute();				// Run and done. Output in STDOUT
 *********************************************************************/
+
+template <class T>
+std::ostream& operator<<(std::ostream&os, const std::vector<T>& v) {
+	os << "{";
+	std::copy(v.begin(), v.end(), std::ostream_iterator<T>(os, ", "));
+	os << "}";
+	return os;
+}
+
 template<typename TestResultType, typename ...TestInputTypes>
 class TestSuite {
 	using SolutionType = typename std::function < TestResultType(TestInputTypes...) >;
