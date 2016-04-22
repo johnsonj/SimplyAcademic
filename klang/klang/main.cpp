@@ -1,10 +1,8 @@
 //
-//  main.cpp
 //  klang
+//  based off of: http://llvm.org/docs/tutorial/
 //
-//  Created by jeffrey on 12/27/15.
-//  Copyright © 2015 jeff. All rights reserved.
-//
+
 
 #include <iostream>
 #include <string>
@@ -404,7 +402,7 @@ void MainParserLoop()
 {
     while(true)
     {
-        std::cout <<"ready> ";
+        std::cout << "ready> ";
         switch(g_curToken)
         {
             case static_cast<int>(Token::t_eof):
